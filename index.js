@@ -11,9 +11,47 @@ function createDuplexStream (filename, opts) {
   filename = filename || ''
   opts = opts || {}
   opts.fn = opts.fn || '_'
-  // Thanks!
-  // http://blog.stevenlevithan.com/archives/match-quoted-string
-  opts.regex = opts.regex || new RegExp(opts.fn + '\\(((["\'])(?:(?=(\\\\?))\\3.)*?\\2)\\)', 'g')
+  /*
+   * RegExp explaination
+   *
+   * (?<=               begin of a positive lookbehind that makes sure that the string literal is an argument of the i18n function
+   *   opts.fn          i18n function name
+   *   \(\s*            opening paranthesis followed by optional whitespace
+   *   (?:              non capturing group matching individual prior arguments to the function and their delimeters
+   *     (?:                non capturing group matching a single prior argument
+   *       "(?:[^"]|\\.)*"  possible argument: a string literal quoted with double quotes, containing only escaped quotes if any
+   *       |                or
+   *       '(?:[^']|\\.)*'  same with single quotes
+   *     )                  end of single argument
+   *     \s*,\s*          delimeter: the arguments are seperated by commas and optional whitespace
+   *   )*                 end of argument list, ending with a delimeter
+   * )                    end of positive lookbehind and therefore everything that comes before the actual string literal that should be matched
+   *
+   * (                    begin first capturing group containing the string value including its quotes (stripped away later via text.slice(1, -1))
+   *   (["'])             second capturing group containing the quote character
+   *   (?:                begin non capturing group containing a single (escaped or unescaped) character of the string literal's text content
+   *     (?=              begin of a positive lookahead matching and capturing a backslash, if there is one at the current position
+   *       (\\?)          capturing the backslash (or an empty string) in \3
+   *     )
+   *     \3.              matches any character, optionally preceeded by a backslash.
+   *   )*?                end of the character. The lazy repetition ensures, that no quotes (\2) are included. Escaped quotes are included, because the character immediately after a backslash is always included, since \3 is followed by a dot and therefore the string cannot end with a backslash, but automatically matches the next character as well.
+   *   \2                 the quote character, closing the string literal
+   * )                    end of the capturing group containing the string literal
+   *
+   * (?=                  begin of a positive lookahead matching any paramters that might follow after the target string literal
+   *   (?:                analogous to the beginning: non capturing group matching arguments and their delimeters
+   *     \s*,\s*          now we start with the delimeter
+   *     (?:                  match single argument
+   *       "(?:[^"]|\\.)*"    string literal with double quotes
+   *       |'(?:[^']|\\.)*'   or with single quotes
+   *       |[^"')]+           or without any quotes (numbers, object references, variables, ...). Cannot contain any paranthesis either, as it is not possible to ensure that every closing bracket has a preceding opening one with regex (would require at least a context free language)
+   *     )
+   *   )*                 end of argument list
+   *   \s*                optional whitespace
+   *   \)                 closing paranthesis
+   * )                    end of positive lookahead
+   */
+  opts.regex = opts.regex || new RegExp("(?<=" + opts.fn + "\\(\\s*(?:(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*')\\s*,\\s*)*)(([\"'])(?:(?=(\\\\?))\\3.)*?\\2)(?=(?:\\s*,\\s*(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*'|[^\"')]+))*\\s*\\))", 'g')
   opts.regexTextCaptureIndex = opts.regexTextCaptureIndex || 1
 
   var lineNum = 1
