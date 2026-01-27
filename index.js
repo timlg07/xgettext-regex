@@ -1,4 +1,5 @@
 var fs = require('fs')
+var path = require('path')
 var Readable = require('stream').Readable
 var through = require('through2')
 var readdirp = require('readdirp')
@@ -68,7 +69,8 @@ function createDuplexStream (filename, opts) {
         var entry = '\n'
 
         if (first) {
-          entry += '#: ' + filename + ':' + lineNum + '\n'
+          const relativeFilename = path.relative(process.cwd(), filename)
+          entry += '#: ' + relativeFilename + ':' + lineNum + '\n'
           first = false
         }
 
