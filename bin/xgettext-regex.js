@@ -14,7 +14,8 @@ if (argv.h || argv.help) {
 
 var outFile = argv.o || argv.outfile
 var opts = {
-  fn: (argv.f || argv.fn)
+  fn: (argv.f || argv.fn),
+  regex: new RegExp(argv.r || argv.regex, 'g')
 }
 
 if (argv._.length) {

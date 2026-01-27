@@ -9,3 +9,7 @@ Standard Options:
                    Defaults to "_" if unspecified.
 
        --help, -h  Show this message.
+
+      --regex, -r  Complete regex that matches string literals in translation functions.
+                   Defaults to the name of the i18n function followed by "\(((["'])(?:(?=(\\?))\3.)*?\2)\)".
+                   It uses the text in the first capturing group by default.
