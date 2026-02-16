@@ -1,12 +1,12 @@
 {
-  "name": "xgettext-regex",
-  "version": "0.3.0",
+  "name": "@tim-greller/xgettext-regex",
+  "version": "0.4.1",
   "description": "Minimum viable xgettext .po file generator. Uses a configurable regex to get translation keys.",
   "main": "index.js",
   "scripts": {
     "test": "istanbul cover node_modules/.bin/tape test/test.js"
   },
-  "author": "Alan Shaw",
+  "author": "Alan Shaw, Tim Greller",
   "license": "ISC",
   "dependencies": {
     "minimist": "^1.1.0",
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/alanshaw/xgettext-regex.git"
+    "url": "git+https://github.com/timlg07/xgettext-regex.git"
   },
   "keywords": [
     "xgettext",
@@ -36,7 +36,10 @@
     "l18n"
   ],
   "bugs": {
-    "url": "https://github.com/alanshaw/xgettext-regex/issues"
+    "url": "https://github.com/timlg07/xgettext-regex/issues"
   },
-  "homepage": "https://github.com/alanshaw/xgettext-regex"
+  "homepage": "https://github.com/timlg07/xgettext-regex",
+  "directories": {
+    "test": "test"
+  }
 }
