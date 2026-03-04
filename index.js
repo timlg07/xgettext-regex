@@ -5,7 +5,6 @@ var through = require('through2')
 var readdirp = require('readdirp')
 var once = require('once')
 var xtend = require('xtend')
-const concat = require('concat-stream')
 
 function createDuplexStream (filename, opts) {
   filename = filename || ''
