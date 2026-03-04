@@ -53,12 +53,13 @@ function createDuplexStream (filename, opts) {
   opts.regex = opts.regex || new RegExp("(?<=" + opts.fn + "\\(\\s*(?:(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*')\\s*,\\s*)*)(([\"'])(?:(?=(\\\\?))\\3.)*?\\2)(?=(?:\\s*,\\s*(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*'|[^\"')]+))*\\s*\\))", 'g')
   opts.regexTextCaptureIndex = opts.regexTextCaptureIndex || 1
 
-  var content = ''
+  var chunks = []
 
   return through(function (chunk, enc, cb) {
-    content += chunk.toString()
+    chunks.push(chunk)
     cb()
   }, function (cb) {
+    var content = Buffer.concat(chunks).toString()
     var matches
     var lineNum = 1
     var scanIndex = 0
