@@ -4,9 +4,7 @@ var Readable = require('stream').Readable
 var through = require('through2')
 var readdirp = require('readdirp')
 var once = require('once')
-var split = require('split')
 var xtend = require('xtend')
-var combine = require('stream-combiner')
 
 function createDuplexStream (filename, opts) {
   filename = filename || ''
@@ -55,44 +53,51 @@ function createDuplexStream (filename, opts) {
   opts.regex = opts.regex || new RegExp("(?<=" + opts.fn + "\\(\\s*(?:(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*')\\s*,\\s*)*)(([\"'])(?:(?=(\\\\?))\\3.)*?\\2)(?=(?:\\s*,\\s*(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*'|[^\"')]+))*\\s*\\))", 'g')
   opts.regexTextCaptureIndex = opts.regexTextCaptureIndex || 1
 
-  var lineNum = 1
+  var content = ''
 
-  return combine(
-    split(),
-    through(function (line, enc, cb) {
-      line = line.toString()
+  return through(function (chunk, enc, cb) {
+    content += chunk.toString()
+    cb()
+  }, function (cb) {
+    var matches
+    var lineNum = 1
+    var scanIndex = 0
+    var lastReferencedLine = 0
+    const relativeFilename = path.relative(process.cwd(), filename)
 
-      var matches
-      var first = true
+    opts.regex.lastIndex = 0
 
-      while ((matches = opts.regex.exec(line)) !== null) {
-        var entry = '\n'
+    while ((matches = opts.regex.exec(content)) !== null) {
+      var entry = '\n'
+      var matchIndex = matches.index
 
-        if (first) {
-          const relativeFilename = path.relative(process.cwd(), filename)
-          entry += '#: ' + relativeFilename + ':' + lineNum + '\n'
-          first = false
-        }
-
-        var text = matches[opts.regexTextCaptureIndex]
-
-        if (text[0] == "'") {
-          text = text.slice(1, -1)
-          text = text.replace(/\\'/g, "'")
-          text = '"' + text.replace(/"/g, '\\"') + '"'
-        }
-
-        entry += 'msgid ' + text + '\n'
-        entry += 'msgstr ' + text + '\n'
-
-        this.push(entry)
+      while (scanIndex < matchIndex) {
+        if (content.charCodeAt(scanIndex) === 10) lineNum++
+        scanIndex++
       }
 
-      lineNum++
-      opts.regex.lastIndex = 0
-      cb()
-    })
-  )
+      if (lineNum !== lastReferencedLine) {
+        entry += '#: ' + relativeFilename + ':' + lineNum + '\n'
+        lastReferencedLine = lineNum
+      }
+
+      var text = matches[opts.regexTextCaptureIndex]
+
+      if (text[0] == "'") {
+        text = text.slice(1, -1)
+        text = text.replace(/\\'/g, "'")
+        text = '"' + text.replace(/"/g, '\\"') + '"'
+      }
+
+      entry += 'msgid ' + text + '\n'
+      entry += 'msgstr ' + text + '\n'
+
+      this.push(entry)
+    }
+
+    opts.regex.lastIndex = 0
+    cb()
+  })
 }
 
 module.exports = createDuplexStream
