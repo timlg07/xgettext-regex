@@ -84,20 +84,23 @@ test('Can change i18n function', function (t) {
 })
 
 test('Can match i18n call spanning multiple lines', function (t) {
-  t.plan(1)
+  t.plan(2)
 
   var src = new Readable
   src._read = function () {
-    this.push('translate(\n')
-    this.push('  "multiline match"\n')
-    this.push(')\n')
+    this.push('i18n.trn(\n')
+    this.push('  "multiline match",\n')
+    this.push('  "multiline matches",\n')
+    this.push('  stuff\n')
+    this.push(');\n')
     this.push(null)
   }
 
   src
-    .pipe(xgettext('src', {fn: 'translate'}))
+    .pipe(xgettext('src', {fn: 'i18n.trn'}))
     .pipe(concat({encoding: 'string'}, function (pot) {
       t.ok(pot.indexOf('msgid "multiline match"') > -1, 'msgid "multiline match" exists')
+      t.ok(pot.indexOf('msgid "multiline matches"') > -1, 'msgid "multiline matches" exists')
       t.end()
     }))
 })
