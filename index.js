@@ -63,23 +63,16 @@ function createDuplexStream (filename, opts) {
     var matches
     var lineNum = 1
     var scanIndex = 0
-    var lastReferencedLine = 0
     const relativeFilename = path.relative(process.cwd(), filename)
 
     opts.regex.lastIndex = 0
 
     while ((matches = opts.regex.exec(content)) !== null) {
-      var entry = '\n'
       var matchIndex = matches.index
 
       while (scanIndex < matchIndex) {
         if (content.charCodeAt(scanIndex) === 10) lineNum++
         scanIndex++
-      }
-
-      if (lineNum !== lastReferencedLine) {
-        entry += '#: ' + relativeFilename + ':' + lineNum + '\n'
-        lastReferencedLine = lineNum
       }
 
       var text = matches[opts.regexTextCaptureIndex]
@@ -90,10 +83,11 @@ function createDuplexStream (filename, opts) {
         text = '"' + text.replace(/"/g, '\\"') + '"'
       }
 
-      entry += 'msgid ' + text + '\n'
-      entry += 'msgstr ' + text + '\n'
-
-      this.push(entry)
+      this.push(`
+        #: ${relativeFilename}:${lineNum}
+        msgid ${text}
+        msgstr ${text}
+      `)
     }
 
     opts.regex.lastIndex = 0
