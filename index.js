@@ -5,6 +5,7 @@ var through = require('through2')
 var readdirp = require('readdirp')
 var once = require('once')
 var xtend = require('xtend')
+const concat = require('concat-stream')
 
 function createDuplexStream (filename, opts) {
   filename = filename || ''
@@ -83,11 +84,12 @@ function createDuplexStream (filename, opts) {
         text = '"' + text.replace(/"/g, '\\"') + '"'
       }
 
-      this.push(`
-        #: ${relativeFilename}:${lineNum}
-        msgid ${text}
-        msgstr ${text}
-      `)
+      this.push([
+        ``,
+        `#: ${relativeFilename}:${lineNum}\n`,
+        `msgid ${text}\n`,
+        `msgstr ${text}\n`
+      ].join('\n'))
     }
 
     opts.regex.lastIndex = 0
