@@ -105,6 +105,41 @@ test('Can match i18n call spanning multiple lines', function (t) {
     }))
 })
 
+test('Emits location line for each same-line match', function (t) {
+  t.plan(2)
+
+  var src = new Readable
+  src._read = function () {
+    this.push('_("first"); _("second")\n')
+    this.push(null)
+  }
+
+  src
+    .pipe(xgettext('src'))
+    .pipe(concat({encoding: 'string'}, function (pot) {
+      t.ok(pot.indexOf('#: src:1\nmsgid "first"') > -1, 'first entry has location line')
+      t.ok(pot.indexOf('#: src:1\nmsgid "second"') > -1, 'second entry has location line')
+      t.end()
+    }))
+})
+
+test('Emits location line for single match on line 4', function (t) {
+  t.plan(1)
+
+  var src = new Readable
+  src._read = function () {
+    this.push('Lorem\nIpsum\nDolor\n_("line four")\n')
+    this.push(null)
+  }
+
+  src
+    .pipe(xgettext('src'))
+    .pipe(concat({encoding: 'string'}, function (pot) {
+      t.ok(/#: src:4\r?\n(?:\r?\n)*msgid "line four"/.test(pot), 'single entry on line 4 has location line')
+      t.end()
+    }))
+})
+
 test('Can create .pot from multiple files/directories', function (t) {
   t.plan(6)
 
