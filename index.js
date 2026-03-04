@@ -87,7 +87,8 @@ function createDuplexStream (filename, opts) {
         ``,
         `#: ${relativeFilename}:${lineNum}`,
         `msgid ${text}`,
-        `msgstr ${text}`
+        `msgstr ${text}`,
+        ``
       ].join('\n'))
     }
 
