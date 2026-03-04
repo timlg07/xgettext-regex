@@ -83,6 +83,25 @@ test('Can change i18n function', function (t) {
     }))
 })
 
+test('Can match i18n call spanning multiple lines', function (t) {
+  t.plan(1)
+
+  var src = new Readable
+  src._read = function () {
+    this.push('translate(\n')
+    this.push('  "multiline match"\n')
+    this.push(')\n')
+    this.push(null)
+  }
+
+  src
+    .pipe(xgettext('src', {fn: 'translate'}))
+    .pipe(concat({encoding: 'string'}, function (pot) {
+      t.ok(pot.indexOf('msgid "multiline match"') > -1, 'msgid "multiline match" exists')
+      t.end()
+    }))
+})
+
 test('Can create .pot from multiple files/directories', function (t) {
   t.plan(6)
 
