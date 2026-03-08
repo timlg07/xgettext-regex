@@ -83,6 +83,16 @@ function createDuplexStream (filename, opts) {
         text = '"' + text.replace(/"/g, '\\"') + '"'
       }
 
+      // handle triple-quoted string (java code blocks)
+      if (text.slice(0, 3) == '"""') {
+        text = text
+            .slice(3, -3)
+            .replace(/^\r?\n\s*/, '') // remove initial new line
+            .replace(/\\\r?\n\s*/g, '') // escaped linebreak + indent
+            .replace(/\r?\n\s*/g, '\\n') // normal linebreak + indent
+        text = `"${text}"`
+      }
+
       this.push([
         ``,
         `#: ${relativeFilename}:${lineNum}`,
