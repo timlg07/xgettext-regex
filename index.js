@@ -133,6 +133,26 @@ function getText (filename, opts) {
   return fs.createReadStream(filename).pipe(createDuplexStream(filename, opts))
 }
 
+function processFilesSequentially (files, opts, onData, cb) {
+  var index = 0
+
+  function next () {
+    if (index >= files.length) return cb()
+
+    var currentFile = files[index++]
+
+    getText(currentFile, opts)
+      .on('data', onData)
+      .on('error', function (er) {
+        console.error('Directory getText error', currentFile, er)
+        cb(er)
+      })
+      .on('end', next)
+  }
+
+  next()
+}
+
 var READDIRP_OPTS = {
   fileFilter: ['!.*', '!*.png', '!*.jpg', '!*.gif', '!*.zip', '!*.gz'],
   directoryFilter: ['!.*', '!node_modules', '!coverage']
@@ -166,31 +186,21 @@ function createDuplexFileStream (opts) {
             cb()
           })
       } else if (stats.isDirectory()) {
-        var total = 0
-        var complete = 0
-        var readdirpComplete = false
+        var files = []
 
         readdirp(filename, xtend(READDIRP_OPTS, opts.readdirp))
           .on('data', function (entry) {
-            total++
-
-            getText(entry.fullPath, opts)
-              .on('data', function (entry) {self.push(entry)})
-              .on('error', function (er) {
-                console.error('Directory getText error', entry.fullPath, er)
-                cb(er)
-              })
-              .on('end', function () {
-                complete++
-                if (total == complete && readdirpComplete) cb()
-              })
+            files.push(entry.fullPath)
           })
           .on('error', function (er) {
             console.error('Directory error', filename, er)
             cb(er)
           })
           .on('end', function () {
-            readdirpComplete = true
+            files.sort()
+            processFilesSequentially(files, opts, function (entry) {
+              self.push(entry)
+            }, cb)
           })
       }
     })

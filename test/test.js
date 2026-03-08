@@ -165,3 +165,19 @@ test('Can create .pot from multiple files/directories', function (t) {
       }))
   })
 })
+
+test('Emits directory entries in deterministic path order', function (t) {
+  t.plan(3)
+
+  xgettext.createReadStream(__dirname + '/fixtures')
+    .pipe(concat({encoding: 'string'}, function (pot) {
+      var indexJade = pot.indexOf('msgid "index.js"')
+      var indexPhp = pot.indexOf('msgid "php hypertext preprocessor"')
+      var jsApp = pot.indexOf('msgid "app.js"')
+
+      t.ok(indexJade > -1, 'index.jade translation exists')
+      t.ok(indexPhp > indexJade, 'index.php content appears after index.jade content')
+      t.ok(jsApp > indexPhp, 'js/app.js content appears after index.php content')
+      t.end()
+    }))
+})
