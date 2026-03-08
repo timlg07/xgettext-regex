@@ -2,7 +2,6 @@ var fs = require('fs')
 var path = require('path')
 var Readable = require('stream').Readable
 var through = require('through2')
-var readdirp = require('readdirp')
 var once = require('once')
 var xtend = require('xtend')
 
@@ -133,29 +132,64 @@ function getText (filename, opts) {
   return fs.createReadStream(filename).pipe(createDuplexStream(filename, opts))
 }
 
-function processFilesSequentially (files, opts, onData, cb) {
-  var index = 0
-
-  function next () {
-    if (index >= files.length) return cb()
-
-    var currentFile = files[index++]
-
-    getText(currentFile, opts)
-      .on('data', onData)
-      .on('error', function (er) {
-        console.error('Directory getText error', currentFile, er)
-        cb(er)
-      })
-      .on('end', next)
-  }
-
-  next()
-}
-
-var READDIRP_OPTS = {
+var DEFAULT_WALK_OPTS = {
   fileFilter: ['!.*', '!*.png', '!*.jpg', '!*.gif', '!*.zip', '!*.gz'],
   directoryFilter: ['!.*', '!node_modules', '!coverage']
+}
+
+function createFilter (patterns) {
+  var compiled = patterns.map(function (pattern) {
+    var isExclude = pattern[0] === '!'
+    var glob = isExclude ? pattern.slice(1) : pattern
+    var re = new RegExp('^' + glob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*') + '$')
+    return { re: re, isExclude: isExclude }
+  })
+  return function (name) {
+    for (var i = 0; i < compiled.length; i++) {
+      if (compiled[i].re.test(name)) return !compiled[i].isExclude
+    }
+    return true // include by default when no pattern matches
+  }
+}
+
+function walkDirectorySorted (dir, fileFilter, dirFilter, onFile, cb) {
+  fs.readdir(dir, function (er, entries) {
+    if (er) return cb(er)
+    entries.sort()
+
+    var index = 0
+
+    function nextEntry () {
+      if (index >= entries.length) return cb()
+
+      var name = entries[index++]
+      var fullPath = path.join(dir, name)
+
+      fs.stat(fullPath, function (er, stats) {
+        if (er) {
+          console.error('walkDirectorySorted stat error', fullPath, er)
+          return nextEntry()
+        }
+        if (stats.isFile()) {
+          if (fileFilter(name)) {
+            onFile(fullPath, nextEntry)
+          } else {
+            nextEntry()
+          }
+        } else if (stats.isDirectory()) {
+          if (dirFilter(name)) {
+            walkDirectorySorted(fullPath, fileFilter, dirFilter, onFile, nextEntry)
+          } else {
+            nextEntry()
+          }
+        } else {
+          nextEntry()
+        }
+      })
+    }
+
+    nextEntry()
+  })
 }
 
 function createDuplexFileStream (opts) {
@@ -186,22 +220,19 @@ function createDuplexFileStream (opts) {
             cb()
           })
       } else if (stats.isDirectory()) {
-        var files = []
+        var walkOpts = xtend(DEFAULT_WALK_OPTS, opts.readdirp)
+        var fileFilter = createFilter(walkOpts.fileFilter)
+        var dirFilter = createFilter(walkOpts.directoryFilter)
 
-        readdirp(filename, xtend(READDIRP_OPTS, opts.readdirp))
-          .on('data', function (entry) {
-            files.push(entry.fullPath)
-          })
-          .on('error', function (er) {
-            console.error('Directory error', filename, er)
-            cb(er)
-          })
-          .on('end', function () {
-            files.sort()
-            processFilesSequentially(files, opts, function (entry) {
-              self.push(entry)
-            }, cb)
-          })
+        walkDirectorySorted(filename, fileFilter, dirFilter, function (filePath, done) {
+          getText(filePath, opts)
+            .on('data', function (entry) { self.push(entry) })
+            .on('error', function (er) {
+              console.error('Directory getText error', filePath, er)
+              cb(er)
+            })
+            .on('end', done)
+        }, cb)
       }
     })
   })
