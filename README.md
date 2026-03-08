@@ -2,6 +2,17 @@
 
 Minimum viable xgettext .pot file generator. Uses a configurable regex to get translation keys.
 
+___________________
+*Note: This repository was forked from [alanshaw/xgettext-regex](https://github.com/alanshaw/xgettext-regex), which is no longer maintained.*  
+*It provides the following additional features:*
+- **Configurable regex via CLI:** made the regex (and regexTextCaptureIndex) configurable.
+- Added an **improved default regex** and documentation for it.
+- Switched to **relative paths** for location comments to prohibit commiting personal workspace directory paths.
+- **Multiline extraction support:** rewrote matching to work across newlines, added regex dotAll support.
+- Added support for **Java text blocks** using """.
+- Fix bug of missing location information if two strings found in same line.
+___________________
+
 ## Examples
 
 ```sh
