@@ -16,7 +16,7 @@ var outFile = argv.o || argv.outfile
 var opts = {
   fn: (argv.f || argv.fn)
 }
-if (argv.r || argv.regex) opts.regex = new RegExp(argv.r || argv.regex, 'g')
+if (argv.r || argv.regex) opts.regex = new RegExp(argv.r || argv.regex, 'gs')
 if (argv.i || argv.index) opts.regexTextCaptureIndex = argv.i || argv.index
 
 if (argv._.length) {

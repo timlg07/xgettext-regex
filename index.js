@@ -50,7 +50,7 @@ function createDuplexStream (filename, opts) {
    *   \)                 closing paranthesis
    * )                    end of positive lookahead
    */
-  opts.regex = opts.regex || new RegExp("(?<=" + opts.fn + "\\(\\s*(?:(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*')\\s*,\\s*)*)(([\"'])(?:(?=(\\\\?))\\3.)*?\\2)(?=(?:\\s*,\\s*(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*'|[^\"')]+))*\\s*\\))", 'g')
+  opts.regex = opts.regex || new RegExp("(?<=" + opts.fn + "\\(\\s*(?:(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*')\\s*,\\s*)*)(([\"'])(?:(?=(\\\\?))\\3.)*?\\2)(?=(?:\\s*,\\s*(?:\"(?:[^\"]|\\\\.)*\"|'(?:[^']|\\\\.)*'|[^\"')]+))*\\s*\\))", 'gs')
   opts.regexTextCaptureIndex = opts.regexTextCaptureIndex || 1
 
   var chunks = []
