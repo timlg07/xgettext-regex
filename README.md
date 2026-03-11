@@ -20,6 +20,12 @@ ___________________
 - Switched to **relative paths** for location comments to prohibit commiting personal workspace directory paths.
 ___________________
 
+## Install
+
+```sh
+npm i @tim-greller/xgettext-regex
+```
+
 ## Examples
 
 ```sh
