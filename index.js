@@ -155,7 +155,9 @@ function createFilter (patterns) {
 function walkDirectorySorted (dir, fileFilter, dirFilter, onFile, cb) {
   fs.readdir(dir, function (er, entries) {
     if (er) return cb(er)
-    entries.sort()
+    entries.sort(function (a, b) {
+      return a.localeCompare(b, undefined, {sensitivity: 'base'})
+    })
 
     var index = 0
 
