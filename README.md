@@ -5,12 +5,19 @@ Minimum viable xgettext .pot file generator. Uses a configurable regex to get tr
 ___________________
 *Note: This repository was forked from [alanshaw/xgettext-regex](https://github.com/alanshaw/xgettext-regex), which is no longer maintained.*  
 *It provides the following additional features:*
+
+**✨ Improved command line interface (CLI)**
 - **Configurable regex via CLI:** made the regex (and regexTextCaptureIndex) configurable.
+
+**✨ Better support for complex syntax & other languages**
 - Added an **improved default regex** and documentation for it.
-- Switched to **relative paths** for location comments to prohibit commiting personal workspace directory paths.
 - **Multiline extraction support:** rewrote matching to work across newlines, added regex dotAll support.
 - Added support for **Java text blocks** using """.
 - Fix bug of missing location information if two strings found in same line.
+
+**✨ Better .pot file diffs to use it in version management like GIT**
+- Deterministic order of the keys by file path
+- Switched to **relative paths** for location comments to prohibit commiting personal workspace directory paths.
 ___________________
 
 ## Examples
