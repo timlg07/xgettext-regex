@@ -3,7 +3,6 @@ var path = require('path')
 var Readable = require('stream').Readable
 var through = require('through2')
 var once = require('once')
-var xtend = require('xtend')
 
 function createDuplexStream (filename, opts) {
   filename = filename || ''
@@ -222,7 +221,7 @@ function createDuplexFileStream (opts) {
             cb()
           })
       } else if (stats.isDirectory()) {
-        var walkOpts = xtend(DEFAULT_WALK_OPTS, opts.readdirp)
+        var walkOpts = Object.assign({}, DEFAULT_WALK_OPTS, opts.readdirp)
         var fileFilter = createFilter(walkOpts.fileFilter)
         var dirFilter = createFilter(walkOpts.directoryFilter)
 
