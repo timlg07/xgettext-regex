@@ -1,6 +1,6 @@
 {
   "name": "@tim-greller/xgettext-regex",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Minimum viable xgettext .po file generator. Uses a configurable regex to get translation keys.",
   "main": "index.js",
   "scripts": {

@@ -81,13 +81,14 @@ function createDuplexStream (filename, opts) {
         text = '"' + text.replace(/"/g, '\\"') + '"'
       }
 
-      // handle triple-quoted string (java code blocks)
+      // handle triple-quoted string (java text blocks)
       if (text.slice(0, 3) == '"""') {
         text = text
             .slice(3, -3)
-            .replace(/^\r?\n\s*/, '') // remove initial new line
-            .replace(/\\\r?\n\s*/g, '') // escaped linebreak + indent
-            .replace(/\r?\n\s*/g, '\\n') // normal linebreak + indent
+            // The following regexes use the double-negation [^\S\r\n] which corresponds to \s but excludes \r and \n.
+            .replace(/^\r?\n[^\S\r\n]*/, '') // remove initial new line
+            .replace(/\\\r?\n[^\S\r\n]*/g, '') // escaped linebreak + indent
+            .replace(/\r?\n[^\S\r\n]*/g, '\\n') // normal linebreak + indent
         text = `"${text}"`
       }
 
