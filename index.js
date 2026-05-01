@@ -78,7 +78,7 @@ function createDuplexStream (filename, opts) {
       if (text[0] == "'") {
         text = text.slice(1, -1)
         text = text.replace(/\\'/g, "'")
-        text = '"' + text.replace(/"/g, '\\"') + '"'
+        text = '"' + text.replace(/(?<!\\)(\\{2})*"/g, '$1\\"') + '"' // escape only unescaped double quotes
       }
 
       // handle triple-quoted string (java text blocks)
